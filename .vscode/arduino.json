@@ -1,4 +1,5 @@
 {
     "board": "arduino:avr:diecimila",
-    "configuration": "cpu=atmega168"
+    "configuration": "cpu=atmega168",
+    "sketch": "XY_TRANSPORT.ino"
 }
