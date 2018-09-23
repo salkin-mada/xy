@@ -1,4 +1,5 @@
 #include "check.h"
+#include <Arduino.h>
 
 extern unsigned long time;
 unsigned long guard1 = 0;
