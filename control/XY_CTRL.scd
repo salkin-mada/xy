@@ -24,77 +24,14 @@ r= Routine.run({
 });
 )
 
-(
-("port"+~esp.port).postln;
-("ip"+~esp.ip).postln;
-"done"
-)
-
-// dc H-BRO control
-g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
-~esp= NetAddr("1.2.3.184", 2999);
-~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/85, /*addi*/0, /*addi*/0))
-~esp.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/100, /*addi*/0, /*addi*/0))
 
 
-
-
-
-
-255**2
-f.value(1,4,255,255)
-f= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
-NetAddr("192.168.1.249", 1112).sendMsg(\tap, f.value(4, 3, 204.5.asInteger%256, 1))
-
-
-OSCFunc.trace(false)
-OSCFunc.trace(true)
-
-
-n = NetAddr("127.0.0.1", 57120); // 57120 is sclang default port
-r = OSCFunc({ arg msg, time; [time, msg].postln }, '/good/news', n);
-
-n.sendMsg("/good/news", "you", "not you");
-n.sendMsg("/good/news", 1, 1.3, 77);
-
-
-n.sendBundle(0.2, ["/good/news", 1, 1.3, 77]);
-
-r.free;
-n.disconnect;
-n
-r
-// note that different NetAddr objects with the same port and ip are independent.
-
-r = OSCFunc({ "message arrived".postln }, '/x');
-
-n = NetAddr("127.0.0.1", 57120);
-n.sendMsg("/x")
-
-
-u = NetAddr("127.0.0.1", 57120);
-u.sendMsg("/x");
-
-n.disconnect
-
-u.sendMsg("/x");
-
-r.free;
-u.disconnect;
-
-~esp.sendMsg(\tap, g.value(/*dir1*/0,/*speed1*/0,/*dir2*/0,/*speed2*/0));
-
-
-
-
-
-
-/*--------------------------------*/
-/*    working - control motor1    */
-/*--------------------------------*/
+/*-------------------------------------------*/
+/*    working - control motor1 with mouse    */
+/*-------------------------------------------*/
 (
 g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)}; // should change name of bytes
-~esp= NetAddr("1.2.3.251", 1112);
+~esp= NetAddr("1.2.3.184", 2999);
 
 OSCdef(\sendToEsp, {arg msg, time, addr, port;
     //msg.postln;
@@ -118,7 +55,7 @@ OSCdef(\sendToEsp, {arg msg, time, addr, port;
     speed1 = speed1.asInteger;
     ("speed1"+speed1).postln;
     ("dir1"+dir1).postln;
-    ~esp.sendMsg(\tap, g.value(/*dir*/dir1,/*speed*/speed1,0,0));
+    ~esp.sendMsg(\xy1, g.value(/*dir*/dir1,/*speed*/speed1,0,0));
 }, '/boksCtrl');
 
 OSCdef(\sendToEsp).enable;
@@ -136,90 +73,21 @@ Ndef(\control, {
 
 
 
-/*------------------------*/
-/*    lastest use this    */
-/*------------------------*/
-(
-g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)}; // should change name of bytes
-~esp= NetAddr("1.2.3.251", 1112);
 
-~dir1 = 0;
-~speed1 = 0;
-~dir2 = 0;
-~speed2 = 0;
 
-OSCdef(\motor1, {arg msg, time;
-    // caller responsibility, val must be in -1.0<>1.0
-    var val = msg[1];
-    var speed = 0;
-    var dir = 0;
-
-    //val = val.linlin(0.000001, 1.0, -1.0, 1.0);
-    "motor1: ".post;
-    val.postln;
-
-    // motor1
-    case
-    {val >= 0.1} {
-        dir = 1;
-        speed = val.lincurve(0.1,0.99,5,255,4);
-        "motor1 forwards".postln;}
-    {val <= -0.1} {
-        dir = 0;
-        speed = val.lincurve(-0.99,-0.1,255,5,-4);
-        "motor1 backwards".postln;}
-    {(val < 0.1) and: (val > -0.1)} {
-        dir = 0;
-        speed = 0;
-        "motor1 stopped".postln;};
-
-    // float to integer
-    ~speed1 = speed.asInteger;
-    ("speed1"+~speed1).postln;
-
-    ~dir1 = dir;
-    ("dir1"+~dir1).postln;
-
-    ~esp.sendMsg(\tap, g.value(~dir1,~speed1,~dir2,~speed2));
-}, '/boksControl/motor1');
-
-OSCdef(\motor2, {arg msg, time;
-    // caller responsibility, val must be in -1.0<>1.0
-    var val = msg[1];
-    var speed = 0;
-    var dir = 0;
-
-    //val = val.linlin(0.000001, 1.0, -1.0, 1.0);
-    "motor2: ".post;
-    val.postln;
-
-    // motor2
-    case
-    {val >= 0.1} {
-        dir = 1;
-        speed = val.lincurve(0.1,0.99,5,255,4);
-        "motor2 forwards".postln;}
-    {val <= -0.1} {
-        dir = 0;
-        speed = val.lincurve(-0.99,-0.1,255,5,-4);
-        "motor2 backwards".postln;}
-    {(val < 0.1) and: (speed > -0.1)} {
-        dir = 0;
-        speed = 0;
-        "motor2 stopped".postln;};
-
-    // float to integer
-    ~speed2 = speed.asInteger;
-    ("speed2"+~speed2).postln;
-
-    ~dir2 = dir;
-    ("dir2"+~dir2).postln;
-
-    ~esp.sendMsg(\tap, g.value(~dir1,~speed1,~dir2,~speed2));
-}, '/boksControl/motor2');
-)
+// simple control with sendMsg evaluation
 
 (
-//abort abort !!!
-~esp.sendMsg(\tap, g.value(0,0,0,0));
+("port"+~esp.port).postln;
+("ip"+~esp.ip).postln;
+"done"
 )
+
+// dc H-BRO control
+g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
+~esp= NetAddr("1.2.3.184", 2999);
+~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/85, /*addi*/0, /*addi*/0))
+~esp.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/22, /*addi*/0, /*addi*/0))
+~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+
+
