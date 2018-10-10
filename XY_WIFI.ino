@@ -2,7 +2,7 @@
 // teensy + esp8266 with firmare 0.9.5.2 or higher
 #define WLAN_SSID  "togbane"
 #define WLAN_PASS  "limpistol"
-#define WLAN_ADDR  "1.2.3.201" // ctrl machine
+#define WLAN_ADDR  "1.2.3.23" // ctrl machine
 #define ADDR "/xy1" //incoming osc addy
 #define PORT  2999  //incoming osc port
 uint8_t buf[16]; // bufsize
@@ -187,4 +187,3 @@ void loop() {
         }
     }
 }
->>>>>>> 47008e114f03748beb2d3cd2bc24e08054ea4051
