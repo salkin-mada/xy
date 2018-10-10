@@ -23,12 +23,12 @@
 //     unsigned long t = millis();
 //     bool found = false;
 //     int i = 0;
-//     int len = strlen(term);
+//     int length = strlen(term);
 //     while (millis() < t + timeout) {
 //         if (Serial1.available()) {
 //             inbuffer[i++] = Serial1.read();
-//             if (i >= len) {
-//                 if (strncmp(inbuffer + i - len, term, len) == 0) {
+//             if (i >= length) {
+//                 if (strncmp(inbuffer + i - length, term, length) == 0) {
 //                     found = true;
 //                     break;
 //                 }
