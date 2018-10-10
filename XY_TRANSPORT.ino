@@ -15,16 +15,18 @@ AF_DCMotor motor4(4, MOTOR34_8KHZ);
 
 unsigned long time;
 
-int flag = 0;
-int localFlag1 = 0;
-int localFlag2 = 0;
-int localFlag3 = 0;
-int localFlag4 = 0;
+int flag = 1;
+int localFlag1 = 1;
+int localFlag2 = 1;
+int localFlag3 = 1;
+int localFlag4 = 1;
 
-bool localDecide1;
-bool localDecide2;
-bool localDecide3;
-bool localDecide4;
+int circularWrapFlag = 0;
+
+bool localDecide1 = 1;
+bool localDecide2 = 1;
+bool localDecide3 = 1;
+bool localDecide4 = 1;
 
 // int currentMotor1State = STOPPED;
 // int lastMotor1State = STOPPED;
@@ -73,6 +75,158 @@ void loop() {
     downStop2Val = digitalRead(downStop2Pin);
     downStop3Val = digitalRead(downStop3Pin);
     downStop4Val = digitalRead(downStop4Pin);
+	// 1
+	if(flag == 1) {
+		if(localFlag1 == 0){
+			motor1.setSpeed(200);
+			motor1.run(BACKWARD);
+			Serial.println("1 DOWN");
+
+			if(downStop1Val == 0){
+				motor1.run(RELEASE);
+				Serial.println("1 DOWN STOP");
+				flag = 4;
+				localFlag4 = 1;
+			}
+		}
+		if(localFlag1 == 1){
+
+			if(circularWrapFlag == 0){
+				Serial.println("CIRC 0");
+				Serial.println("1 UP");
+				motor1.setSpeed(255);
+				motor1.run(FORWARD);
+				delay(50);
+				motor1.setSpeed(230);
+				delay(1200);
+				motor2.setSpeed(60);
+				Serial.println("1 UP STOP");
+				flag = 3;
+				localFlag3 = 1;
+				delay(1000);
+			}
+
+			if(circularWrapFlag == 1){
+				Serial.println("CIRC 1");
+				Serial.println("1 UP");				
+				motor1.setSpeed(255);
+				motor1.run(FORWARD);
+				delay(50);
+				motor1.setSpeed(230);
+				delay(1200);
+				motor2.setSpeed(60);
+				Serial.println("1 UP STOP");
+				flag = 2;
+				localFlag2 = 0;
+				delay(1000);
+			}
+
+			if(circularWrapFlag == 2){
+				Serial.println("CIRC 2");
+				Serial.println("1 STAY UP");
+				flag = 3;
+				localFlag3 = 1;
+
+			}
+		}
+
+
+	}
+	// 3
+	if(flag == 3) {
+		if(localFlag3 == 0){
+			motor3.setSpeed(200);
+			motor3.run(BACKWARD);
+			Serial.println("3 DOWN");
+
+			if(downStop3Val == 0){
+				Serial.println("3 DOWN STOP");
+				motor3.run(RELEASE);
+				flag = 2;
+				localFlag2 = 1;
+			}
+		}
+		if(localFlag3 == 1){
+			Serial.println("3 UP");
+			motor3.setSpeed(255);
+			motor3.run(FORWARD);
+			delay(50);
+			motor3.setSpeed(255);
+			delay(1500);
+			motor3.setSpeed(100);
+			Serial.println("3 UP STOP");
+			flag = 1;
+			localFlag1 = 0;
+			delay(1000);
+		}
+
+
+	}
+	// 4
+	if(flag == 4) {
+		if(localFlag4 == 0){
+			Serial.println("4 DOWN");
+			motor4.setSpeed(200);
+			motor4.run(BACKWARD);
+
+			if(downStop4Val == 0){
+				Serial.println("4 DOWN STOP");
+				motor4.run(RELEASE);
+				flag = 1;
+				localFlag1 = 1;
+				circularWrapFlag = 1;
+			}
+		}
+		if(localFlag4 == 1){
+			Serial.println("4 UP");
+			motor4.setSpeed(255);
+			motor4.run(FORWARD);
+			delay(50);
+			motor4.setSpeed(240);
+			delay(1400);
+			motor4.setSpeed(80);
+			Serial.println("4 UP STOP");
+			flag = 3;
+			localFlag3 = 0;
+			delay(1000);
+		}
+
+
+	}
+
+	// 2
+	if(flag == 2) {
+		if(localFlag2 == 0){
+			Serial.println("2 DOWN");
+			motor2.setSpeed(255);
+			motor2.run(BACKWARD);
+
+			if(downStop2Val == 0){
+				Serial.println("2 DOWN STOP");
+				motor2.run(RELEASE);
+				flag = 1;
+				localFlag1 = 1;
+				circularWrapFlag = 2;
+			}
+		}
+		if(localFlag2 == 1){
+			Serial.println("2 UP");
+			motor2.setSpeed(255);
+			motor2.run(FORWARD);
+			delay(50);
+			motor2.setSpeed(255);
+			delay(1500);
+			motor2.setSpeed(100);
+			Serial.println("2 UP STOP");
+			flag = 4;
+			localFlag4 = 0;
+			delay(1000);
+		}
+
+
+	}
+
+
 
     //time = millis();
 	//check_time();
@@ -87,7 +241,7 @@ void loop() {
     //Serial.println(downStop1Val);
     
     // 1
-    if(flag == 0) {
+    /*if(flag == 0) {
 
 		if(downStop1Val == 1 && localFlag1 == 0) {
 			motor1.setSpeed(200);
@@ -105,7 +259,7 @@ void loop() {
 			delay(20);
 			motor1.setSpeed(230);
 			delay(1200);
-			//motor1.run(RELEASE);
+			motor1.run(RELEASE);
 			motor2.setSpeed(60);
 			delay(random(100,3000));
 			
@@ -128,7 +282,7 @@ void loop() {
 		}
 
 		if(downStop1Val == 0 && localFlag1 == 2) {
-				localFlag1 = 3;
+			localFlag1 = 3;
 		}
 
 		if(downStop1Val == 0 && localFlag1 == 3){
@@ -146,7 +300,7 @@ void loop() {
     
     }
 
-	// 2
+	2
     if(flag == 1){
 
 
@@ -166,10 +320,10 @@ void loop() {
 			delay(20);
 			motor2.setSpeed(250);
 			delay(900);
-			//motor2.run(RELEASE);
+			motor2.run(RELEASE);
 			motor2.setSpeed(60);
 			delay(random(100,3000));
-			//motor2.run(RELEASE); // special case 149.12.43 motor not strong enough to hold
+			motor2.run(RELEASE); // special case 149.12.43 motor not strong enough to hold
 
 			localFlag2 = 1;
 			localDecide2 = random(2);
@@ -184,7 +338,7 @@ void loop() {
 		if(localDecide2 == 1 && localFlag2 == 1) {
 
 			if(downStop2Val == 1 && localFlag2 == 1) {
-				// special
+				special
 				motor2.run(BACKWARD);
 				motor2.setSpeed(255);
 				localFlag2 = 2;
@@ -211,7 +365,7 @@ void loop() {
     
     }
 
-	// 3
+	3
     if(flag == 2){
 
 		if(downStop3Val == 1 && localFlag3 == 0) {
@@ -230,7 +384,7 @@ void loop() {
 			delay(20);
 			motor3.setSpeed(220);
 			delay(1200);
-			//motor3.run(RELEASE);
+			motor3.run(RELEASE);
 			motor3.setSpeed(60);
 			delay(random(100,3000));
 			
@@ -273,7 +427,7 @@ void loop() {
     
     }
 
-	// 4
+	4
     if(flag == 3){
 
 
@@ -294,7 +448,7 @@ void loop() {
 			motor4.setSpeed(220);
 			delay(1100);
 			motor4.setSpeed(60);
-			//motor4.run(RELEASE);
+			motor4.run(RELEASE);
 			delay(random(100,3000));
 			
 			localFlag4 = 1;
@@ -333,8 +487,8 @@ void loop() {
 			flag = random(4);
 		}
     
-    }
+    }*/
 
-    delay(10); //relax
+    delay(50); //relax
 
 }
