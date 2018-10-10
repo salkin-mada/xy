@@ -41,9 +41,9 @@ byte wait_for_esp_response(int timeout, char* term = OKrn) {
 
 // double dual L293B H-bridge
 // motor 1
-int in1PinMotor1 = 7; //digital - dir
-int in2PinMotor1 = 8; //digital - dir
-int enablePinMotor1 = 9; // pwm
+int in1PinMotor1 = 11; //digital - dir
+int in2PinMotor1 = 12; //digital - dir
+int enablePinMotor1 = 10; // pwm
 int speedMotor1 = 0;
 bool reverseMotor1 = false;
 
@@ -144,6 +144,8 @@ void loop() {
             buf[14] = indata[10];
             buf[15] = indata[11];
 
+            // here we need stop up down sensor if statements
+
             if (buf[12] == 1) {
                 reverseMotor1 = false;
             } else if (buf[12] == 0) {
@@ -163,7 +165,7 @@ void loop() {
             }
 
             if (timeElapsed - lastTimeGuard >= timeGuardInterval) {
-                Serial.println("det var tid");
+                Serial.println("det var tid baby");
 
                 lastTimeGuard = timeElapsed;
             }
