@@ -12,10 +12,31 @@ char OKrn[] = "OK\r\n";
 
 // timer stuff
 unsigned long lastTimeGuard = 0;
-const long timeGuardInterval = 500;
+const long timeGuardInterval = 100;
 unsigned long timeElapsed;
 
 int led = 13;
+
+// position
+#define POS_TRUE 0
+#define POS_FALSE 1
+
+// modus and boundaries
+#define STOPPED 0
+#define UPWARDS 1
+#define DOWNWARDS 2
+#define AT_MIN 3
+#define AT_MAX 4
+
+// states
+int currentMotor1State = STOPPED;
+int lastMotor1State = STOPPED;
+
+const int line1ExpandMinPin = A0;
+const int line1ExpandMaxPin = A1;
+int line1ExpandMin;
+int line1ExpandMax;
+
 
 bool ignitionIsNeededFlag = true;
 
@@ -39,8 +60,8 @@ byte wait_for_esp_response(int timeout, char* term = OKrn) {
     return found;
 }
 
-// double dual L293B H-bridge
-// motor 1
+// L293B
+// motor
 int in1PinMotor1 = 11; //digital - dir
 int in2PinMotor1 = 12; //digital - dir
 int enablePinMotor1 = 10; // pwm
@@ -74,6 +95,9 @@ void setup() {
     /*----------------------*/
     pinMode(led, OUTPUT);
 
+    pinMode(line1ExpandMinPin, INPUT_PULLUP);
+    pinMode(line1ExpandMaxPin, INPUT_PULLUP);
+
     // changing pin 5, 6, 9, 10, 20, 21, 22, 23	PWM freq on Timer FTM0
     analogWriteFrequency(5, 187500); // 8 BIT = 0-255 (CPU speedMotor1 96MHz)
     //analogWriteFrequency(enablePinMotor1, 46875); // 10 BIT = 0-1023 (CPU speedMotor1 96MHz)
@@ -90,7 +114,7 @@ void setup() {
     Serial.begin(115200);   //usb serial for feedback
     //while(!Serial){} //wait for serial;
     delay(400);
-    Serial1.begin(115200);  //teensy hardware pins 0 and 1, for sending AT commands and piping OSC to Teensy
+    Serial1.begin(115200);  //teensy rx tx, for sending AT commands and piping OSC to Teensy
     Serial.println("starting");
     Serial.print("hard reset...");
     pinMode(4, OUTPUT); // reset
@@ -125,65 +149,183 @@ void setup() {
     Serial1.println(",0");
     resp = wait_for_esp_response(1000);
     Serial.println(resp);
+    
+    digitalWrite(led, HIGH);
+    delay(200);
+    digitalWrite(led, LOW);
+    delay(200);
+    digitalWrite(led, HIGH);
+    delay(200);
+    digitalWrite(led, LOW);
+    delay(200);
+    digitalWrite(led, HIGH);
+    delay(200);
+    digitalWrite(led, LOW);
+    delay(200);
+    digitalWrite(led, HIGH);
+    delay(200);
+    digitalWrite(led, LOW);
+    delay(200);
     Serial.println("setup done");
 }
 
-    /*--------------------------------------*/
-    /*                MAIN                  */
-    /*--------------------------------------*/
+/*--------------------------------------*/
+/*                MAIN                  */
+/*--------------------------------------*/
 
 void loop() {
 
     timeElapsed = millis();
 
+    line1ExpandMin = digitalRead(line1ExpandMinPin);
+    line1ExpandMax = digitalRead(line1ExpandMaxPin);
+
+    speedMotor1 = buf[13]; // update speed
+
+    // STOP MIN
+    if (
+        (line1ExpandMin == POS_TRUE) &&
+        (currentMotor1State == DOWNWARDS))
+        {
+        analogWrite(enablePinMotor1, 0);
+        currentMotor1State = AT_MIN;
+    }
+    // STOP MAX
+    if (
+        (line1ExpandMax == POS_TRUE) &&
+        currentMotor1State == UPWARDS) 
+        {
+        analogWrite(enablePinMotor1, 0);
+        currentMotor1State = AT_MAX;
+    }
+
     if (wait_for_esp_response(10, "\r\n+IPD,4,16:")) {
         if (wait_for_esp_response(10, ADDR)) {
-            Serial1.readBytes(indata, 16); // fra 12 bytes til 16 bytes
+            Serial1.readBytes(indata, 16); // 16 bytes
             buf[12] = indata[8];
             buf[13] = indata[9];
             buf[14] = indata[10];
             buf[15] = indata[11];
 
-            // here we need stop up down sensor if statements
-
+            // SET DIRECTION
             if (buf[12] == 1) {
                 reverseMotor1 = false;
             } else if (buf[12] == 0) {
                 reverseMotor1 = true;
             }
-            speedMotor1 = buf[13];
 
             // ignition for slow movements
             // you can do better than this !
-            if (speedMotor1 <= 5) {
-                ignitionIsNeededFlag = true;
-            }
+            // if (speedMotor1 <= 5) {
+            //     ignitionIsNeededFlag = true;
+            // }
 
-            if ( (ignitionIsNeededFlag == true) && (speedMotor1 < 22) && (speedMotor1 > 5) ) {
-                speedMotor1 = 255;
-                ignitionIsNeededFlag = false;
-            }
+            // if ( (ignitionIsNeededFlag == true) && (speedMotor1 < 22) && (speedMotor1 > 5) ) {
+            //     speedMotor1 = 255;
+            //     ignitionIsNeededFlag = false;
+            // }
 
+            // spill the beans about direction input
             if (timeElapsed - lastTimeGuard >= timeGuardInterval) {
-                Serial.println("det var tid baby");
+                Serial.print("REVERSE: ");
+                if(reverseMotor1 == false){
+                    Serial.println("FALSE");
+                }
+                if(reverseMotor1 == true){
+                    Serial.println("TRUE");
+                }
+                
+                Serial.print("SPEED: ");
+                Serial.println(speedMotor1);
+
+                Serial.print("AT_MIN: ");
+                Serial.println(line1ExpandMin);
+                Serial.print("AT_MAX: ");
+                Serial.println(line1ExpandMax);
 
                 lastTimeGuard = timeElapsed;
             }
 
-            analogWrite(enablePinMotor1, speedMotor1);
-            digitalWrite(in1PinMotor1, ! reverseMotor1);
-            digitalWrite(in2PinMotor1, reverseMotor1);
+            // UPWARDS
+            if (
+                (reverseMotor1 == false) &&
+                (currentMotor1State != AT_MAX) &&
+                (line1ExpandMax == POS_FALSE) &&
+                (currentMotor1State != UPWARDS))
+                {
+                digitalWrite(in1PinMotor1, ! reverseMotor1);
+                digitalWrite(in2PinMotor1, reverseMotor1);
+                currentMotor1State = UPWARDS;
+                Serial.print("MOTOR 1 UPWARDS <<< ---state#:  ");
+                Serial.println(currentMotor1State);
+            }
+            //DOWNWARDS
+            if (
+                (reverseMotor1 == true) &&
+                (currentMotor1State != AT_MIN) &&
+                (line1ExpandMin == POS_FALSE) &&
+                (currentMotor1State != DOWNWARDS))
+                {
+                digitalWrite(in1PinMotor1, ! reverseMotor1);
+                digitalWrite(in2PinMotor1, reverseMotor1);
+                currentMotor1State = DOWNWARDS;
+                Serial.print("MOTOR 1 DOWNWARDS >>> ---state#: ");
+                Serial.println(currentMotor1State);
+            }
+            // BRAKES
+            if (
+                (currentMotor1State != AT_MIN) &&
+                (currentMotor1State != AT_MAX) &&
+                (currentMotor1State != STOPPED) &&
+                (speedMotor1 < 1))
+                {
+                analogWrite(enablePinMotor1, 0);
+                currentMotor1State = STOPPED;
+                lastMotor1State = STOPPED;
+                Serial.print("MOTOR 1 STOPPED ... ---state#: ");
+                Serial.println(currentMotor1State);
+            }
 
-            Serial.print("dirMotor1: ");
-            Serial.println(buf[12]);
-            Serial.print("speedMotor1: ");
-            Serial.println(buf[13]);
+            // SPEED
+            // MOTOR 1
+            if(currentMotor1State != AT_MIN) {
+                if (currentMotor1State == UPWARDS) {
+                    if (lastMotor1State == STOPPED) {
+                        lastMotor1State = UPWARDS;
+                        analogWrite(enablePinMotor1, 255);
+                        Serial.println("ignite UPWARDS");
+                    }
+                    analogWrite(enablePinMotor1, speedMotor1);
+                }
+                
+            }
+            if(currentMotor1State != AT_MAX) {
+                if (currentMotor1State == DOWNWARDS) {
+                    if (lastMotor1State == STOPPED) {
+                        lastMotor1State = DOWNWARDS;
+                        analogWrite(enablePinMotor1, 255);
+                        Serial.println("ignite DOWNWARDS");
+                    }
+                    analogWrite(enablePinMotor1, speedMotor1);
+                }
+            }
+
+
+
+            // analogWrite(enablePinMotor1, speedMotor1);
+            // digitalWrite(in1PinMotor1, ! reverseMotor1);
+            // digitalWrite(in2PinMotor1, reverseMotor1);
+
+            // Serial.print("dirMotor1: ");
+            // Serial.println(buf[12]);
+            // Serial.print("speedMotor1: ");
+            // Serial.println(buf[13]);
 
             Serial1.println("AT+CIPSEND=4,16");
             if (wait_for_esp_response(10, "> ")) {
                 Serial1.write(buf, sizeof(buf));
                 if (wait_for_esp_response(10)) {
-                    Serial.println("reply sent!");
+                    //Serial.println("reply sent!");
                 }
             }
         }
