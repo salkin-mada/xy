@@ -91,3 +91,51 @@ g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 ~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
 
 
+
+
+
+
+
+
+// GUI WORK
+(
+~bits = {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
+~esp= NetAddr("1.2.3.184", 2999);
+~speed = 0;
+~dir = 0;
+
+
+w = Window.new.front;
+g = EZSlider( w,         // parent
+	              390@20,    // bounds
+	              "xy1",  // label
+	              \pan,     // controlSpec
+	              { |slider|
+		case
+		{slider.value >0.1} {
+			"above (+)".postln;
+			~dir = 1;
+			(slider.value.asString).postln;
+			~speed = (slider.value.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+		}
+		{(slider.value > (0.1).neg) and: (slider.value < 0.1)} {
+			"complete stop".postln;
+			~speed = 0;
+		}
+		{slider.value < (0.1).neg} {
+			"above (-)".postln;
+			~dir = 0;
+			(slider.value.asString).postln;
+			~speed = (slider.value.abs.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+
+		};
+		~speed.postln;
+		~esp.sendMsg(\xy1, ~bits.value(~dir, ~speed, /*addi*/0, /*addi*/0));
+		//(slider.value.asString).postln;
+
+	} // action
+);
+g.setColors(Color.red,Color.white)
+);
+
+OSCFunc.trace(false)
