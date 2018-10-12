@@ -13,6 +13,8 @@ char OKrn[] = "OK\r\n";
 // timer stuff
 unsigned long lastTimeGuard = 0;
 const long timeGuardInterval = 100;
+unsigned long ignitionLastTimeGuard = 0;
+const long ignitionTimeGuardInterval = 40;
 unsigned long timeElapsed;
 
 int led = 13;
@@ -28,6 +30,8 @@ int led = 13;
 #define AT_MIN 3
 #define AT_MAX 4
 
+bool ignitionFlag = false;
+
 // states
 int currentMotor1State = STOPPED;
 int lastMotor1State = STOPPED;
@@ -37,8 +41,6 @@ const int line1ExpandMaxPin = A1;
 int line1ExpandMin;
 int line1ExpandMax;
 
-
-bool ignitionIsNeededFlag = true;
 
 byte wait_for_esp_response(int timeout, char* term = OKrn) {
     unsigned long t = millis();
@@ -149,23 +151,15 @@ void setup() {
     Serial1.println(",0");
     resp = wait_for_esp_response(1000);
     Serial.println(resp);
-    
-    digitalWrite(led, HIGH);
-    delay(200);
-    digitalWrite(led, LOW);
-    delay(200);
-    digitalWrite(led, HIGH);
-    delay(200);
-    digitalWrite(led, LOW);
-    delay(200);
-    digitalWrite(led, HIGH);
-    delay(200);
-    digitalWrite(led, LOW);
-    delay(200);
-    digitalWrite(led, HIGH);
-    delay(200);
-    digitalWrite(led, LOW);
-    delay(200);
+
+    // visual setup done
+    for(int i=0; i<=10; i++){
+        digitalWrite(led, HIGH);
+        delay(70);
+        digitalWrite(led, LOW);
+        delay(70);
+    }
+
     Serial.println("setup done");
 }
 
@@ -199,6 +193,12 @@ void loop() {
         currentMotor1State = AT_MAX;
     }
 
+    // ignition timer
+    if ((timeElapsed - ignitionLastTimeGuard >= ignitionTimeGuardInterval) && (ignitionFlag == true)) {
+        analogWrite(enablePinMotor1, speedMotor1);
+        ignitionFlag = false;
+    }
+
     if (wait_for_esp_response(10, "\r\n+IPD,4,16:")) {
         if (wait_for_esp_response(10, ADDR)) {
             Serial1.readBytes(indata, 16); // 16 bytes
@@ -214,18 +214,9 @@ void loop() {
                 reverseMotor1 = true;
             }
 
-            // ignition for slow movements
-            // you can do better than this !
-            // if (speedMotor1 <= 5) {
-            //     ignitionIsNeededFlag = true;
-            // }
-
-            // if ( (ignitionIsNeededFlag == true) && (speedMotor1 < 22) && (speedMotor1 > 5) ) {
-            //     speedMotor1 = 255;
-            //     ignitionIsNeededFlag = false;
-            // }
-
-            // spill the beans about direction input
+            /*---------------------------------*/
+            /*         SPILL THE BEANS         */
+            /*---------------------------------*/
             if (timeElapsed - lastTimeGuard >= timeGuardInterval) {
                 Serial.print("REVERSE: ");
                 if(reverseMotor1 == false){
@@ -277,7 +268,7 @@ void loop() {
                 (currentMotor1State != AT_MIN) &&
                 (currentMotor1State != AT_MAX) &&
                 (currentMotor1State != STOPPED) &&
-                (speedMotor1 < 1))
+                (speedMotor1 <= 5))
                 {
                 analogWrite(enablePinMotor1, 0);
                 currentMotor1State = STOPPED;
@@ -291,22 +282,29 @@ void loop() {
             if(currentMotor1State != AT_MIN) {
                 if (currentMotor1State == UPWARDS) {
                     if (lastMotor1State == STOPPED) {
+                        ignitionFlag = true;
                         lastMotor1State = UPWARDS;
                         analogWrite(enablePinMotor1, 255);
+                        ignitionLastTimeGuard = timeElapsed;
                         Serial.println("ignite UPWARDS");
+                        
+                    } else {
+                        analogWrite(enablePinMotor1, speedMotor1);
                     }
-                    analogWrite(enablePinMotor1, speedMotor1);
                 }
                 
             }
             if(currentMotor1State != AT_MAX) {
                 if (currentMotor1State == DOWNWARDS) {
                     if (lastMotor1State == STOPPED) {
+                        ignitionFlag = true;
                         lastMotor1State = DOWNWARDS;
                         analogWrite(enablePinMotor1, 255);
+                        ignitionLastTimeGuard = timeElapsed;
                         Serial.println("ignite DOWNWARDS");
+                    } else {
+                        analogWrite(enablePinMotor1, speedMotor1);
                     }
-                    analogWrite(enablePinMotor1, speedMotor1);
                 }
             }
 
