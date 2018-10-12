@@ -98,6 +98,8 @@ g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 
 
 // GUI WORK
+
+// simple slider
 (
 ~bits = {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 ~esp= NetAddr("1.2.3.184", 2999);
@@ -138,4 +140,69 @@ g = EZSlider( w,         // parent
 g.setColors(Color.red,Color.white)
 );
 
-OSCFunc.trace(false)
+
+
+// 2d slider
+
+t.x        // get the x loc
+t.x_(0.25) // set the x loc
+
+
+
+
+(
+
+~bits = {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
+~espXY1= NetAddr("1.2.3.184", 2999);
+~espXY2= NetAddr("1.2.3.255", 2999);
+~espXY3= NetAddr("1.2.3.254", 2999);
+~espXY4= NetAddr("1.2.3.253", 2999);
+~speed1 = 0;
+~dir1 = 0;
+~speed2 = 0;
+~dir2 = 0;
+~speed3 = 0;
+~dir3 = 0;
+~speed4 = 0;
+~dir4 = 0;
+
+w = Window("XY_KÅNTRÅL", Rect(200, 200, 500, 500));
+w.view.decorator = FlowLayout(w.view.bounds);
+t = Slider2D(w, Rect(20, 20, 490, 490))
+        .x_(0.5) // initial location of x
+        .y_(0.5)   // initial location of y
+        .background_(Color.yellow(0.7))
+        .action_({|sl|
+
+	/*
+	         Y
+	         |
+	    1    |	  2
+	         |
+	X--------|--------
+	         |
+	    4    |	  3
+	         |
+	*/
+
+	case
+	{(sl.y < 0.5) and: (sl.x == 0.5)}{"lift quadrant 1,2".postln;}
+	{(sl.y > 0.5) and: (sl.x == 0.5)}{"lift quadrant 3,4".postln;}
+	{(sl.x < 0.5) and: (sl.y == 0.5)}{"lift quadrant 2,3".postln;}
+	{(sl.x > 0.5) and: (sl.y == 0.5)}{"lift quadrant 1,4".postln;}
+	{(sl.y < 0.5) and: (sl.x > 0.5)}{"lift quadrant 1,2,4".postln;}
+	{(sl.y < 0.5) and: (sl.x < 0.5)}{"lift quadrant 1,2,3".postln;}
+	{(sl.y > 0.5) and: (sl.x < 0.5)}{"lift quadrant 2,3,4".postln;}
+	{(sl.y > 0.5) and: (sl.x > 0.5)}{"lift quadrant 1,3,4".postln;};
+
+
+	//~esp.sendMsg(\xy1, ~bits.value(~dir, ~speed, /*addi*/0, /*addi*/0));
+
+
+            [\sliderX, sl.x, \sliderY, sl.y].postln;
+        });
+t.step_(0.01);
+
+
+w.front;
+)
