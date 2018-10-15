@@ -77,19 +77,17 @@ Ndef(\control, {
 
 // simple control with sendMsg evaluation
 
-(
-("port"+~esp.port).postln;
-("ip"+~esp.ip).postln;
-"done"
-)
-
 // dc H-BRO control
 g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
-~esp= NetAddr("1.2.3.184", 2999);
-~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/85, /*addi*/0, /*addi*/0))
-~esp.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/22, /*addi*/0, /*addi*/0))
-~esp.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+~xy1= NetAddr("1.2.3.184", 2999);
+~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/255, /*addi*/0, /*addi*/0))
+~xy1.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/22, /*addi*/0, /*addi*/0))
+~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
 
+~xy2= NetAddr("1.2.3.185", 2999);
+~xy2.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/85, /*addi*/0, /*addi*/0))
+~xy2.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/22, /*addi*/0, /*addi*/0))
+~xy2.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
 
 
 
@@ -102,42 +100,78 @@ g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 // simple slider
 (
 ~bits = {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
-~esp= NetAddr("1.2.3.184", 2999);
-~speed = 0;
-~dir = 0;
+~xy1= NetAddr("1.2.3.184", 2999);
+~speed1 = 0;
+~dir1 = 0;
+~xy2= NetAddr("1.2.3.185", 2999);
+~speed2 = 0;
+~dir2 = 0;
 
 
-w = Window.new.front;
+w = Window.new(bounds: Rect(100, 500, 790, 100)).front;
 g = EZSlider( w,         // parent
-	              390@20,    // bounds
+	              790@100,    // bounds
 	              "xy1",  // label
 	              \pan,     // controlSpec
 	              { |slider|
 		case
 		{slider.value >0.1} {
-			"above (+)".postln;
-			~dir = 1;
+			"1 above (+)".postln;
+			~dir1 = 1;
 			(slider.value.asString).postln;
-			~speed = (slider.value.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+			~speed1 = (slider.value.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
 		}
 		{(slider.value > (0.1).neg) and: (slider.value < 0.1)} {
-			"complete stop".postln;
-			~speed = 0;
+			"1 complete stop".postln;
+			~speed1 = 0;
 		}
 		{slider.value < (0.1).neg} {
-			"above (-)".postln;
-			~dir = 0;
+			"1 above (-)".postln;
+			~dir1 = 0;
 			(slider.value.asString).postln;
-			~speed = (slider.value.abs.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+			~speed1 = (slider.value.abs.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
 
 		};
-		~speed.postln;
-		~esp.sendMsg(\xy1, ~bits.value(~dir, ~speed, /*addi*/0, /*addi*/0));
+		~speed1.postln;
+		~xy1.sendMsg(\xy1, ~bits.value(~dir1, ~speed1, /*addi*/0, /*addi*/0));
 		//(slider.value.asString).postln;
 
 	} // action
 );
-g.setColors(Color.red,Color.white)
+g.setColors(Color.red,Color.white);
+
+e = Window.new(bounds: Rect(900, 500, 790, 100)).front;
+h = EZSlider( e,         // parent
+	              790@100,    // bounds
+	              "xy2",  // label
+	              \pan,     // controlSpec
+	              { |slider|
+		case
+		{slider.value >0.1} {
+			"2 above (+)".postln;
+			~dir2 = 1;
+			(slider.value.asString).postln;
+			~speed2 = (slider.value.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+		}
+		{(slider.value > (0.1).neg) and: (slider.value < 0.1)} {
+			"2 complete stop".postln;
+			~speed2 = 0;
+		}
+		{slider.value < (0.1).neg} {
+			"2 above (-)".postln;
+			~dir2 = 0;
+			(slider.value.asString).postln;
+			~speed2 = (slider.value.abs.linexp(0.0,1.0,0.01,1.0)*255).asInteger;
+
+		};
+		~speed2.postln;
+		~xy2.sendMsg(\xy1, ~bits.value(~dir2, ~speed2, /*addi*/0, /*addi*/0));
+		//(slider.value.asString).postln;
+
+	} // action
+);
+h.setColors(Color.red,Color.white);
+
 );
 
 
@@ -154,9 +188,9 @@ t.x_(0.25) // set the x loc
 
 ~bits = {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 ~espXY1= NetAddr("1.2.3.184", 2999);
-~espXY2= NetAddr("1.2.3.255", 2999);
-~espXY3= NetAddr("1.2.3.254", 2999);
-~espXY4= NetAddr("1.2.3.253", 2999);
+~espXY2= NetAddr("1.2.3.185", 2999);
+//~espXY3= NetAddr("1.2.3.254", 2999);
+//~espXY4= NetAddr("1.2.3.253", 2999);
 ~speed1 = 0;
 ~dir1 = 0;
 ~speed2 = 0;
@@ -171,7 +205,8 @@ w.view.decorator = FlowLayout(w.view.bounds);
 t = Slider2D(w, Rect(20, 20, 490, 490))
         .x_(0.5) // initial location of x
         .y_(0.5)   // initial location of y
-        .background_(Color.yellow(0.7))
+        .background_(Color.yellow(0.89))
+.knobColor_(Color.magenta)
         .action_({|sl|
 
 	/*
@@ -186,23 +221,92 @@ t = Slider2D(w, Rect(20, 20, 490, 490))
 	*/
 
 	case
-	{(sl.y < 0.5) and: (sl.x == 0.5)}{"lift quadrant 1,2".postln;}
-	{(sl.y > 0.5) and: (sl.x == 0.5)}{"lift quadrant 3,4".postln;}
-	{(sl.x < 0.5) and: (sl.y == 0.5)}{"lift quadrant 2,3".postln;}
-	{(sl.x > 0.5) and: (sl.y == 0.5)}{"lift quadrant 1,4".postln;}
-	{(sl.y < 0.5) and: (sl.x > 0.5)}{"lift quadrant 1,2,4".postln;}
-	{(sl.y < 0.5) and: (sl.x < 0.5)}{"lift quadrant 1,2,3".postln;}
-	{(sl.y > 0.5) and: (sl.x < 0.5)}{"lift quadrant 2,3,4".postln;}
-	{(sl.y > 0.5) and: (sl.x > 0.5)}{"lift quadrant 1,3,4".postln;};
+	{(sl.y < 0.5) and: (sl.x == 0.5)}{
+		"lift quadrant 1,2".postln;
+		~speed1 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		~speed1.postln;
+		~dir1 = 1;
+		~speed2 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		~speed2.postln;
+		~dir2 = 1;
+		~speed3 = 100;
+		~dir3 = 0;
+		~speed4 = 100;
+		~dir4 = 0;
+
+	}
+	{(sl.y > 0.5) and: (sl.x == 0.5)}{
+		"lift quadrant 3,4".postln;
+
+	}
+	{(sl.x < 0.5) and: (sl.y == 0.5)}{
+		"lift quadrant 2,3".postln;
+
+	}
+	{(sl.x > 0.5) and: (sl.y == 0.5)}{
+		"lift quadrant 1,4".postln;
+
+	}
+	{(sl.y < 0.5) and: (sl.x > 0.5)}{
+		"lift quadrant 1,2,4".postln;
+
+	}
+	{(sl.y < 0.5) and: (sl.x < 0.5)}{
+		"lift quadrant 1,2,3".postln;
+
+	}
+	{(sl.y > 0.5) and: (sl.x < 0.5)}{
+		"lift quadrant 2,3,4".postln;
+
+	}
+	{(sl.y > 0.5) and: (sl.x > 0.5)}{
+		"lift quadrant 1,3,4".postln;
+
+	};
 
 
-	//~esp.sendMsg(\xy1, ~bits.value(~dir, ~speed, /*addi*/0, /*addi*/0));
 
 
-            [\sliderX, sl.x, \sliderY, sl.y].postln;
-        });
-t.step_(0.01);
+
+	[\sliderX, sl.x, \sliderY, sl.y].postln;
+});
+
+t.step_(0.00); // disable keyboard
+
+~mouseDown = {"we're moving".postln;};
+
+~mouseUp = {
+	t.x_(0.5); t.y_(0.5);
+
+	~dir1 = 0;
+	~dir2 = 0;
+	~speed1 = 100;
+	~speed2 = 100;
+
+	"ALL DOWN".postln;
+};
+
+t.addAction(~mouseDown, \mouseDownAction);
+t.addAction(~mouseUp, \mouseUpAction);
+
+~send = Task({
+	loop {
+		~espXY1.sendMsg(\xy1, ~bits.value(~dir1, ~speed1, /*addi*/0, /*addi*/0));
+		~espXY2.sendMsg(\xy1, ~bits.value(~dir2, ~speed2, /*addi*/0, /*addi*/0));
+		//~espXY3.sendMsg(\xy3, ~bits.value(~dir3, ~speed3, /*addi*/0, /*addi*/0));
+		//~espXY4.sendMsg(\xy4, ~bits.value(~dir4, ~speed4, /*addi*/0, /*addi*/0));
+
+		0.125.wait;
+	};
+}).play;
 
 
 w.front;
+w.alwaysOnTop = true;
+w.onClose = {
+	~speed1 = 0; ~speed2 = 0; "ABORT".postln;
+};
 )
+
+~send.stop; // stop sending
+
