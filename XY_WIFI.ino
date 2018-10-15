@@ -3,7 +3,7 @@
 #define WLAN_SSID  "togbane"
 #define WLAN_PASS  "limpistol"
 #define WLAN_ADDR  "1.2.3.23" // ctrl machine
-#define ADDR "/xy1" //incoming osc addy
+#define ADDR "/xy" //incoming osc addy
 #define PORT  2999  //incoming osc port
 uint8_t buf[16]; // bufsize
 char indata[16]; // fra 12 til 16 bytes
