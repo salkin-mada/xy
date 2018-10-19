@@ -224,51 +224,125 @@ t = Slider2D(w, Rect(20, 20, 490, 490))
 	{(sl.y < 0.5) and: (sl.x == 0.5)}{
 		"lift quadrant 1,2".postln;
 		~speed1 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
-		~speed1.postln;
 		~dir1 = 1;
 		~speed2 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
-		~speed2.postln;
 		~dir2 = 1;
-		~speed3 = 100;
+		~speed3 = 100; //down
 		~dir3 = 0;
-		~speed4 = 100;
+		~speed4 = 100; //down
 		~dir4 = 0;
-
 	}
 	{(sl.y > 0.5) and: (sl.x == 0.5)}{
 		"lift quadrant 3,4".postln;
-
+		~speed1 = 100; //down
+		~dir1 = 0;
+		~speed2 = 100; //down
+		~dir2 = 0;
+		~speed3 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		~dir3 = 1;
+		~speed4 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		~dir4 = 1;
 	}
 	{(sl.x < 0.5) and: (sl.y == 0.5)}{
 		"lift quadrant 2,3".postln;
+		~speed1 = 100; //down
+		~dir1 = 0;
+		~speed2 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		~dir2 = 1;
+		~speed3 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		~dir3 = 1;
+		~speed4 = 100; //down
+		~dir4 = 0;
 
 	}
 	{(sl.x > 0.5) and: (sl.y == 0.5)}{
 		"lift quadrant 1,4".postln;
+		~speed1 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		~dir1 = 1;
+		~speed2 = 100; //down
+		~dir2 = 0;
+		~speed3 = 100; //down
+		~dir3 = 0;
+		~speed4 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		~dir4 = 1;
 
 	}
 	{(sl.y < 0.5) and: (sl.x > 0.5)}{
 		"lift quadrant 1,2,4".postln;
+		if((sl.y).linlin(0.0,0.5,1.0,0.5) > sl.x, {
+			~speed1 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		},{
+			~speed1 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		});
+		~dir1 = 1;
+		~speed2 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		~dir2 = 1;
+		~speed3 = 100; //down
+		~dir3 = 0;
+		~speed4 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		~dir4 = 1;
 
 	}
 	{(sl.y < 0.5) and: (sl.x < 0.5)}{
 		"lift quadrant 1,2,3".postln;
-
+		~speed1 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		~dir1 = 1;
+		if(sl.y < sl.x, {
+			~speed2 = (sl.y).linexp(0.0,0.5,255,1).asInteger;
+		},{
+			~speed2 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		});
+		~dir2 = 1;
+		~speed3 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		~dir3 = 1;
+		~speed4 = 100; //down
+		~dir4 = 0;
 	}
 	{(sl.y > 0.5) and: (sl.x < 0.5)}{
 		"lift quadrant 2,3,4".postln;
+		~speed1 = 100; //down
+		~dir1 = 0;
+		~speed2 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		~dir2 = 1;
+		if(sl.y > (sl.x).linlin(0.0,0.5,1.0,0.5), {
+			~speed3 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		},{
+			~speed3 = (sl.x).linexp(0.0,0.5,255,1).asInteger;
+		});
+		~dir3 = 1;
+		~speed4 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		~dir4 = 1;
 
 	}
 	{(sl.y > 0.5) and: (sl.x > 0.5)}{
 		"lift quadrant 1,3,4".postln;
+		~speed1 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		~dir1 = 1;
+		~speed2 = 100; // down
+		~dir2 = 0;
+		~speed3 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		~dir3 = 1;
+		if(sl.y > sl.x, {
+			~speed4 = (sl.y).linexp(0.5,1.0,1,255).asInteger;
+		},{
+			~speed4 = (sl.x).linexp(0.5,1.0,1,255).asInteger;
+		});
+		~dir4 = 1;
 
 	};
 
+	"speed 1: ".post;
+	~speed1.postln;
+	"speed 2: ".post;
+	~speed2.postln;
+	"speed 3: ".post;
+	~speed3.postln;
+	"speed 4: ".post;
+	~speed4.postln;
 
 
 
-
-	[\sliderX, sl.x, \sliderY, sl.y].postln;
+	//[\sliderX, sl.x, \sliderY, sl.y].postln;
 });
 
 t.step_(0.00); // disable keyboard
