@@ -1,12 +1,12 @@
 
 // teensy + esp8266 with firmare 0.9.5.2 or higher
-#define WLAN_SSID  "togbane"
+#define WLAN_SSID  "amonvika"
 #define WLAN_PASS  "limpistol"
 #define WLAN_ADDR  "1.2.3.23" // ctrl machine
 #define ADDR "/xy" //incoming osc addy
 #define PORT  2999  //incoming osc port
 uint8_t buf[16]; // bufsize
-char indata[16]; // fra 12 til 16 bytes
+char indata[12]; // fra 12 til 16 bytes
 char inbuffer[256];
 char OKrn[] = "OK\r\n";
 
@@ -19,7 +19,7 @@ unsigned long timeElapsed;
 
 int led = 13;
 
-// position
+// position, aka min max switch pressed
 #define POS_TRUE 0
 #define POS_FALSE 1
 
@@ -36,8 +36,8 @@ bool ignitionFlag = false;
 int currentMotor1State = STOPPED;
 int lastMotor1State = STOPPED;
 
-const int line1ExpandMinPin = A0;
-const int line1ExpandMaxPin = A1;
+const int line1ExpandMinPin = 22;
+const int line1ExpandMaxPin = 23;
 int line1ExpandMin;
 int line1ExpandMax;
 
@@ -171,10 +171,12 @@ void loop() {
 
     timeElapsed = millis();
 
+    speedMotor1 = buf[14]; // update speed
+
     line1ExpandMin = digitalRead(line1ExpandMinPin);
     line1ExpandMax = digitalRead(line1ExpandMaxPin);
 
-    speedMotor1 = buf[13]; // update speed
+
 
     // STOP MIN
     if (
@@ -187,7 +189,7 @@ void loop() {
     // STOP MAX
     if (
         (line1ExpandMax == POS_TRUE) &&
-        currentMotor1State == UPWARDS) 
+        currentMotor1State == UPWARDS)
         {
         analogWrite(enablePinMotor1, 0);
         currentMotor1State = AT_MAX;
@@ -201,16 +203,17 @@ void loop() {
 
     if (wait_for_esp_response(10, "\r\n+IPD,4,16:")) {
         if (wait_for_esp_response(10, ADDR)) {
-            Serial1.readBytes(indata, 16); // 16 bytes
+            Serial1.readBytes(indata, 12);
+
             buf[12] = indata[8];
             buf[13] = indata[9];
             buf[14] = indata[10];
             buf[15] = indata[11];
 
             // SET DIRECTION
-            if (buf[12] == 1) {
+            if (buf[13] == 1) {
                 reverseMotor1 = false;
-            } else if (buf[12] == 0) {
+            } else if (buf[13] == 0) {
                 reverseMotor1 = true;
             }
 
@@ -225,14 +228,31 @@ void loop() {
                 if(reverseMotor1 == true){
                     Serial.println("TRUE");
                 }
-                
+
                 Serial.print("SPEED: ");
                 Serial.println(speedMotor1);
 
-                Serial.print("AT_MIN: ");
-                Serial.println(line1ExpandMin);
-                Serial.print("AT_MAX: ");
-                Serial.println(line1ExpandMax);
+                if(line1ExpandMin == POS_TRUE) {
+                  Serial.println("AT_MIN");
+                }
+                //Serial.println(line1ExpandMin);
+
+                if(line1ExpandMax == POS_TRUE) {
+                  Serial.println("AT_MAX");
+                }
+                //Serial.println(line1ExpandMax);
+
+                // spill the buf
+                for (int i = 0; i < 16; i++) {
+                  //Serial.print("buf[\"i\"]: ");
+                  Serial.println(buf[i]);
+                }
+
+                //indata?
+                // for (int i = 0; i < 12; i++) {
+                //   Serial.print("indata[\"i\"]: ");
+                //   Serial.println(indata[i]);
+                // }
 
                 lastTimeGuard = timeElapsed;
             }
@@ -287,12 +307,12 @@ void loop() {
                         analogWrite(enablePinMotor1, 255);
                         ignitionLastTimeGuard = timeElapsed;
                         Serial.println("ignite UPWARDS");
-                        
+
                     } else {
                         analogWrite(enablePinMotor1, speedMotor1);
                     }
                 }
-                
+
             }
             if(currentMotor1State != AT_MAX) {
                 if (currentMotor1State == DOWNWARDS) {
