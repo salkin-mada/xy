@@ -3,6 +3,7 @@
 #define WLAN_SSID  "amonvika"
 #define WLAN_PASS  "limpistol"
 #define WLAN_ADDR  "1.2.3.23" // ctrl machine
+// not strict though, will respond to any host
 #define ADDR "/xy" //incoming osc addy
 #define PORT  2999  //incoming osc port
 uint8_t buf[16]; // bufsize
