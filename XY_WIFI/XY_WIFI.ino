@@ -2,12 +2,12 @@
 // teensy + esp8266 with firmare 0.9.5.2 or higher
 #define WLAN_SSID  "amonvika"
 #define WLAN_PASS  "limpistol"
-#define WLAN_ADDR  "1.2.3.23" // ctrl machine
-// not strict though, will respond to any host
+#define WLAN_ADDR  "1.2.3.23" // ctrl machine, not strict though, will respond to any host
+#define HOSTNAME  "xy4"
 #define ADDR "/xy" //incoming osc addy
 #define PORT  2999  //incoming osc port
 uint8_t buf[16]; // bufsize
-char indata[12]; // fra 12 til 16 bytes
+char indata[12];
 char inbuffer[256];
 char OKrn[] = "OK\r\n";
 
@@ -141,11 +141,17 @@ void setup() {
         Serial.print(resp);
     } while (!resp);
     Serial.print("\nmux1...");
-    Serial1.println("AT+CIPMUX=1");
+    Serial1.println("AT+CIPMUX=1"); // enable multiple connectiion
+    Serial1.print("AT+CWHOSTNAME=\""); // set hostname
+    Serial1.print(HOSTNAME);
+    Serial1.println("\"");
+    Serial1.print("AT+MDNS=1,\""); // set mDNS
+    Serial1.print(HOSTNAME);
+    Serial1.println("\",\"esp8266\",8080"); // servername and port
     resp = wait_for_esp_response(1000);
     Serial.println(resp);
     Serial.print("udp...");
-    Serial1.print("AT+CIPSTART=4,\"UDP\",\"");
+    Serial1.print("AT+CIPSTART=4,\"UDP\",\""); // create UDP transmission
     Serial1.print(WLAN_ADDR);
     Serial1.print("\",57120,");
     Serial1.print(PORT);
