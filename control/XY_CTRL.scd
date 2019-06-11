@@ -1,3 +1,41 @@
+
+
+// simple control with sendMsg evaluation
+
+// dc H-BRO control
+g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
+~xy1= NetAddr("1.2.3.84", 2999);
+~xy1.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/8, /*addi*/0, /*addi*/0))
+~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/10, /*addi*/0, /*addi*/0))
+
+~xy2= NetAddr("1.2.3.85", 2999);
+~xy2.sendMsg(\xy2, g.value(/*dir*/1,/*speed*/142, /*addi*/0, /*addi*/0))
+~xy2.sendMsg(\xy2, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+~xy2.sendMsg(\xy2, g.value(/*dir*/0,/*speed*/40, /*addi*/0, /*addi*/0))
+
+~xy3= NetAddr("1.2.3.86", 2999);
+~xy3.sendMsg(\xy3, g.value(/*dir*/1,/*speed*/108, /*addi*/0, /*addi*/0))
+~xy3.sendMsg(\xy3, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+~xy3.sendMsg(\xy3, g.value(/*dir*/0,/*speed*/165, /*addi*/0, /*addi*/0))
+
+~xy4= NetAddr("1.2.3.87", 2999);
+~xy4.sendMsg(\xy4, g.value(/*dir*/1,/*speed*/142, /*addi*/0, /*addi*/0))
+~xy4.sendMsg(\xy4, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
+~xy4.sendMsg(\xy4, g.value(/*dir*/0,/*speed*/140, /*addi*/0, /*addi*/0))
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*------------------------------------------------------------------------------*/
 /*--------- MULTISLIDER CONTROLLED FROM VTMax SceneCore Partikkel --------------*/
 /*------------------------------------------------------------------------------*/
@@ -384,7 +422,7 @@ OSCdef(\sti, {|msg, time, addr|
 	last= time;
 	("osc from"+addr.ip+"port"+addr.port).postln;
 }, \sti);
-~esp= NetAddr("1.2.3.185", 2999); //esp8266 ip
+~esp= NetAddr("1.2.3.85", 2999); //esp8266 ip
 g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 r= Routine.run({
 	inf.do{|i|
@@ -404,7 +442,7 @@ r= Routine.run({
 /*-------------------------------------------*/
 (
 g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)}; // should change name of bytes
-~esp= NetAddr("1.2.3.185", 2999);
+~esp= NetAddr("1.2.3.85", 2999);
 
 OSCdef(\sendToEsp, {arg msg, time, addr, port;
 	//msg.postln;
@@ -448,31 +486,6 @@ Ndef(\control, {
 
 
 
-// simple control with sendMsg evaluation
-
-// dc H-BRO control
-g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
-~xy1= NetAddr("1.2.3.84", 2999);
-~xy1.sendMsg(\xy1, g.value(/*dir*/1,/*speed*/148, /*addi*/0, /*addi*/0))
-~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
-~xy1.sendMsg(\xy1, g.value(/*dir*/0,/*speed*/165, /*addi*/0, /*addi*/0))
-
-~xy2= NetAddr("1.2.3.85", 2999);
-~xy2.sendMsg(\xy2, g.value(/*dir*/1,/*speed*/142, /*addi*/0, /*addi*/0))
-~xy2.sendMsg(\xy2, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
-~xy2.sendMsg(\xy2, g.value(/*dir*/0,/*speed*/40, /*addi*/0, /*addi*/0))
-
-~xy3= NetAddr("1.2.3.86", 2999);
-~xy3.sendMsg(\xy3, g.value(/*dir*/1,/*speed*/108, /*addi*/0, /*addi*/0))
-~xy3.sendMsg(\xy3, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
-~xy3.sendMsg(\xy3, g.value(/*dir*/0,/*speed*/165, /*addi*/0, /*addi*/0))
-
-~xy4= NetAddr("1.2.3.87", 2999);
-~xy4.sendMsg(\xy4, g.value(/*dir*/1,/*speed*/142, /*addi*/0, /*addi*/0))
-~xy4.sendMsg(\xy4, g.value(/*dir*/0,/*speed*/0, /*addi*/0, /*addi*/0))
-~xy4.sendMsg(\xy4, g.value(/*dir*/0,/*speed*/140, /*addi*/0, /*addi*/0))
-
-
 
 
 
@@ -484,7 +497,7 @@ g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 ~xy1= NetAddr("1.2.3.184", 2999);
 ~speed1 = 0;
 ~dir1 = 0;
-~xy2= NetAddr("1.2.3.185", 2999);
+~xy2= NetAddr("1.2.3.87", 2999);
 ~speed2 = 0;
 ~dir2 = 0;
 
