@@ -37,8 +37,8 @@ bool ignitionFlag = false;
 int currentMotor1State = STOPPED;
 int lastMotor1State = STOPPED;
 
-const int line1ExpandMinPin = 22;
-const int line1ExpandMaxPin = 23;
+const int line1ExpandMinPin = 14;
+const int line1ExpandMaxPin = 15;
 int line1ExpandMin;
 int line1ExpandMax;
 
@@ -146,8 +146,8 @@ void setup() {
     Serial1.print(HOSTNAME);
     Serial1.println("\"");
     Serial1.print("AT+MDNS=1,\""); // set mDNS
-    Serial1.print(HOSTNAME);
-    Serial1.println("\",\"esp8266\",8080"); // servername and port
+    Serial1.print("HOSTNAME");
+    Serial1.println("\",\"esp8266\",8080"); //  servername and port
     resp = wait_for_esp_response(1000);
     Serial.println(resp);
     Serial.print("udp...");

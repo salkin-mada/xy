@@ -384,13 +384,13 @@ OSCdef(\sti, {|msg, time, addr|
 	last= time;
 	("osc from"+addr.ip+"port"+addr.port).postln;
 }, \sti);
-~esp= NetAddr("1.2.3.185", 2999); //esp8266 ip
+~esp= NetAddr("1.2.3.85", 2999); //esp8266 ip
 g= {|id, on, hi, lo| (id&255<<24)|(on&255<<16)|(hi&255<<8)|(lo&255)};
 r= Routine.run({
 	inf.do{|i|
 		//n.sendMsg(\tap, g.value(4, 3, i.asInteger%256, 1));
 		//~esp.sendMsg(\tap, g.value(2, 4, i.asInteger%181, 2.rand));
-		~esp.sendMsg(\xy1, g.value(1, 255, 0, 0));
+		~esp.sendMsg(\xy4, g.value(1, 255, 0, 0));
 		send= Main.elapsedTime;
 		0.5.wait;
 	};
