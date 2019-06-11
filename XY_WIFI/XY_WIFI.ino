@@ -348,7 +348,8 @@ void loop() {
 
             Serial1.println("AT+CIPSEND=4,16");
             if (wait_for_esp_response(10, "> ")) {
-                Serial1.write(buf, sizeof(buf));
+                //Serial1.write(buf, sizeof(buf));
+                Serial1.write(state, sizeof());
                 if (wait_for_esp_response(10)) {
                     //Serial.println("reply sent!");
                 }
